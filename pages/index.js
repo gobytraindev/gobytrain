@@ -1,47 +1,62 @@
+import { useState } from 'react';
+
 export default function Home() {
+  const [from, setFrom] = useState('');
+  const [to, setTo] = useState('');
+  const [results, setResults] = useState([]);
+
+  const dummyData = [
+    { from: 'Stockholm', to: 'Berlin', time: '17h 30min', transfers: 3 },
+    { from: 'Paris', to: 'Rome', time: '11h 15min', transfers: 0 },
+    { from: 'Madrid', to: 'Amsterdam', time: '14h 45min', transfers: 2 },
+    { from: 'Oslo', to: 'Copenhagen', time: '8h 10min', transfers: 1 },
+    { from: 'Berlin', to: 'Prague', time: '4h 00min', transfers: 0 },
+  ];
+
+  const handleSearch = () => {
+    const filtered = dummyData.filter(
+      (route) =>
+        route.from.toLowerCase().includes(from.toLowerCase()) &&
+        route.to.toLowerCase().includes(to.toLowerCase())
+    );
+    setResults(filtered);
+  };
+
   return (
-    <main style={{
-      fontFamily: "Arial, sans-serif",
-      minHeight: "100vh",
-      backgroundColor: "#f5f5f5",
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: "2rem"
-    }}>
-      <h1 style={{ fontSize: "2.5rem", marginBottom: "1rem" }}>
-        🚄 GoByTrain
-      </h1>
-      <p style={{ fontSize: "1.2rem", marginBottom: "2rem", color: "#555" }}>
-        Find your best train route across Europe.
-      </p>
-      <div style={{
-        display: "flex",
-        gap: "1rem",
-        marginBottom: "1rem"
-      }}>
-        <input type="text" placeholder="From..." style={inputStyle} />
-        <input type="text" placeholder="To..." style={inputStyle} />
-        <button style={buttonStyle}>Search</button>
+    <div style={{ padding: '2rem', fontFamily: 'Arial' }}>
+      <h1>🚄 GoByTrain</h1>
+      <p>Find your best train route across Europe.</p>
+
+      <input
+        type="text"
+        placeholder="From..."
+        value={from}
+        onChange={(e) => setFrom(e.target.value)}
+        style={{ marginRight: '1rem' }}
+      />
+      <input
+        type="text"
+        placeholder="To..."
+        value={to}
+        onChange={(e) => setTo(e.target.value)}
+        style={{ marginRight: '1rem' }}
+      />
+      <button onClick={handleSearch}>Search</button>
+
+      <div style={{ marginTop: '2rem' }}>
+        {results.length === 0 && <p>No routes found.</p>}
+        {results.map((route, index) => (
+          <div key={index} style={{ marginBottom: '1rem' }}>
+            <strong>
+              {route.from} → {route.to}
+            </strong>
+            <br />
+            Duration: {route.time}
+            <br />
+            Transfers: {route.transfers}
+          </div>
+        ))}
       </div>
-    </main>
+    </div>
   );
 }
-
-const inputStyle = {
-  padding: "0.5rem 1rem",
-  borderRadius: "5px",
-  border: "1px solid #ccc",
-  fontSize: "1rem"
-};
-
-const buttonStyle = {
-  padding: "0.5rem 1.2rem",
-  borderRadius: "5px",
-  border: "none",
-  backgroundColor: "#0070f3",
-  color: "#fff",
-  fontSize: "1rem",
-  cursor: "pointer"
-};
