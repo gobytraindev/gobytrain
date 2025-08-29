@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    @apply bg-slate-100 text-slate-900 antialiased;
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-semibold text-slate-800;
+  }
+
+  a {
+    @apply text-blue-600 hover:underline;
+  }
+}
