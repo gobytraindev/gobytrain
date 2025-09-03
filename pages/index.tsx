@@ -3,10 +3,16 @@ import React, { useEffect, useMemo, useState } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 
-import SearchForm, { SearchFormValues } from "../components/SearchForm";
+import SearchForm from "../components/SearchForm";
 import ResultsList, { Train } from "../components/ResultsList";
 import { searchRoutes } from "../utils/searchRoutes";
-
+type SearchFormValues = {
+  from: string;
+  to: string;
+  date: string;
+  maxPrice?: string;
+  maxDuration?: string;
+};
 // ---- SEO (metadata – ingen layout) ----
 const metaTitle = "GoByTrain — Find the best train routes in Europe";
 const metaDesc =
