@@ -4,29 +4,16 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 
 import SearchForm from "../components/SearchForm";
-import ResultsList from "../components/ResultsList";
+import ResultsList, { Train } from "../components/ResultsList";
 import { searchRoutes } from "../utils/searchRoutes";
 
-// ---- Lokala typer (vi importerar inga typer från komponenter) ----
+// Formvärden vi använder lokalt
 type SearchFormValues = {
   from: string;
   to: string;
   date: string;
   maxPrice?: string;
   maxDuration?: string;
-};
-
-type Train = {
-  id: number;
-  from: string;
-  to: string;
-  departure: string;
-  arrival: string;
-  duration: string;
-  price: string;
-  changes: string;        // normaliseras till string här nere
-  operator: string;
-  train: string;
 };
 
 // ---- SEO (metadata – ingen layout) ----
@@ -62,6 +49,7 @@ export default function Home() {
     };
   }, [router.query]);
 
+  // Håll URL:en i synk med formulärvärden (utan att påverka layout)
   useEffect(() => {
     const hasQuery =
       !!initialValues.from || !!initialValues.to || !!initialValues.date;
@@ -74,9 +62,7 @@ export default function Home() {
             to: initialValues.to,
             date: initialValues.date,
             ...(initialValues.maxPrice ? { maxPrice: initialValues.maxPrice } : {}),
-            ...(initialValues.maxDuration
-              ? { maxDuration: initialValues.maxDuration }
-              : {}),
+            ...(initialValues.maxDuration ? { maxDuration: initialValues.maxDuration } : {}),
           },
         },
         undefined,
@@ -89,16 +75,16 @@ export default function Home() {
   async function handleSearch(values: SearchFormValues) {
     setLoading(true);
 
-    // Filtrera enligt ev. maxDuration (h) och maxPrice (€)
+    // Filtrera enligt maxDuration (h) och maxPrice (€) om angivet
     const found = searchRoutes(values.from, values.to, values.date).filter((r) => {
-      if (values.maxDuration && values.maxDuration.trim().length > 0) {
+      if (values.maxDuration && values.maxDuration.trim()) {
         const m = (r.duration || "").match(/(\d+)h.*?(\d+)\s*m?/i);
         const mins =
-          m ? parseInt(m[1] || "0", 10) * 60 + parseInt(m[2] || "0", 10) : 99999;
+          (m ? parseInt(m[1] || "0", 10) * 60 + parseInt(m[2] || "0", 10) : 99999);
         const maxMins = parseInt(values.maxDuration, 10) * 60;
         if (mins > maxMins) return false;
       }
-      if (values.maxPrice && values.maxPrice.trim().length > 0) {
+      if (values.maxPrice && values.maxPrice.trim()) {
         const priceNum = parseInt((r.price || "").replace(/[^0-9]/g, ""), 10) || 0;
         const max = parseInt(values.maxPrice, 10);
         if (priceNum > max) return false;
@@ -106,19 +92,20 @@ export default function Home() {
       return true;
     });
 
-    // Imitera nätverk och normalisera typer (särskilt `changes` -> string)
+    // Imitera nätverk och mappa till Train (från ResultsList) — inkl. date
     setTimeout(() => {
       const data: Train[] = found.map((r, i) => ({
         id: i + 1,
         from: r.from,
         to: r.to,
+        date: values.date || "",            // <-- viktigt: krävs av Train-typen
         departure: r.departure,
         arrival: r.arrival,
         duration: r.duration,
         price: r.price,
-        changes: String((r as any).changes ?? ""), // <- fixar number/string-mismatch
-        operator: (r as any).operator,
-        train: (r as any).train,
+        changes: String(r.changes ?? ""),   // normalisera till string om nödvändigt
+        operator: r.operator,
+        train: r.train,
       }));
       setResults(data);
       setLoading(false);
@@ -142,6 +129,7 @@ export default function Home() {
         {/* JSON-LD */}
         <script
           type="application/ld+json"
+          // @ts-ignore
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </Head>
@@ -156,7 +144,7 @@ export default function Home() {
             Fast, reliable results. Book with trusted partners.
           </p>
 
-          {/* Kort info – text, ingen komponent/layout-ändring */}
+          {/* Kort info för att undvika “Soft 404” utan att ändra layout */}
           <p className="mt-4 text-center text-gray-700 max-w-2xl mx-auto">
             GoByTrain helps you compare prices, durations and operators across
             Europe so you can book with confidence. Start by entering your
@@ -164,11 +152,8 @@ export default function Home() {
           </p>
 
           <div className="mt-8 mx-auto max-w-xl">
-            <SearchForm
-              initialValues={initialValues}
-              onSearch={handleSearch}
-              /* OBS: vi skickar inte loading här längre – det fällde bygget */
-            />
+            {/* Viktigt: skicka bara props som SearchForm faktiskt har */}
+            <SearchForm initialValues={initialValues} onSearch={handleSearch} />
           </div>
         </div>
       </section>
@@ -180,7 +165,11 @@ export default function Home() {
             <div className="flex flex-col items-center gap-3 py-8 text-slate-500">
               <svg className="h-6 w-6 animate-spin" viewBox="0 0 24 24" aria-hidden="true">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" fill="none" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                />
               </svg>
               <span>Searching routes…</span>
             </div>
