@@ -5,7 +5,7 @@ import { useRouter } from "next/router";
 import SearchForm, { type SearchFormValues } from "../components/SearchForm";
 import ResultsList, { type Train } from "../components/ResultsList";
 import { searchRoutes } from "../utils/searchRoutes";
-
+import SeoHead from "../components/SeoHead";
 export default function Home() {
   const router = useRouter();
   const [results, setResults] = useState<Train[]>([]);
@@ -14,6 +14,7 @@ export default function Home() {
   const initialValues: SearchFormValues = useMemo(() => {
     const { from, to, date, maxPrice, maxDuration } = router.query;
     return {
+      <SeoHead />
       from: typeof from === "string" ? from : "",
       to: typeof to === "string" ? to : "",
       date: typeof date === "string" ? date : "",
