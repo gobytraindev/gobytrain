@@ -4,7 +4,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 
 import SearchForm from "../components/SearchForm";
-import ResultsList, { Train } from "../components/ResultsList";
+import ResultsList from "../components/ResultsList";
 import { searchRoutes } from "../utils/searchRoutes";
 type SearchFormValues = {
   from: string;
@@ -29,7 +29,18 @@ const jsonLd = {
     "query-input": "required name=from required name=to optional name=date",
   },
 };
-
+interface Train {
+  id: number;
+  from: string;
+  to: string;
+  departure: string;
+  arrival: string;
+  duration: string;
+  price: string;
+  changes: string;
+  operator: string;
+  train: string;
+}
 export default function Home() {
   const router = useRouter();
   const [results, setResults] = useState<Train[]>([]);
