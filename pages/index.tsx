@@ -7,12 +7,12 @@ import SearchForm, { SearchFormValues } from "../components/SearchForm";
 import ResultsList, { Train } from "../components/ResultsList";
 import { searchRoutes } from "../utils/searchRoutes";
 
-// ---- SEO content (bara metadata/innehåll för sökmotorer – ingen layout förändras) ----
+// ---- SEO (metadata – ingen layout) ----
 const metaTitle = "GoByTrain — Find the best train routes in Europe";
 const metaDesc =
   "Search, compare and book train journeys across Europe with GoByTrain. Fast, reliable results from trusted partners.";
 
-const jsonLdWebsite = {
+const jsonLd = {
   "@context": "https://schema.org",
   "@type": "WebSite",
   name: "GoByTrain",
@@ -22,41 +22,6 @@ const jsonLdWebsite = {
     target: "https://gobytrain.co/details?from={from}&to={to}&date={date}",
     "query-input": "required name=from required name=to optional name=date",
   },
-};
-
-// Ett extra osynligt FAQ-schema (ger mer kontext, påverkar inte layouten)
-const jsonLdFAQ = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  mainEntity: [
-    {
-      "@type": "Question",
-      name: "How do I search for European train routes?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text:
-          "Enter your origin, destination and date. GoByTrain compares operators, durations and indicative prices so you can pick a suitable journey.",
-      },
-    },
-    {
-      "@type": "Question",
-      name: "Can I book tickets on GoByTrain?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text:
-          "Search and comparison happen on GoByTrain. Booking is completed with trusted partners shown alongside each result.",
-      },
-    },
-    {
-      "@type": "Question",
-      name: "Which countries are covered?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text:
-          "Major routes across Sweden, Norway, Denmark, Germany, France, Italy, Spain, the Netherlands and more.",
-      },
-    },
-  ],
 };
 
 export default function Home() {
@@ -100,12 +65,10 @@ export default function Home() {
   async function handleSearch(values: SearchFormValues) {
     setLoading(true);
 
-    // enkel filtrering för maxDuration (h) och maxPrice (€) om de finns
     const found = searchRoutes(values.from, values.to, values.date).filter((r) => {
       if (values.maxDuration && values.maxDuration.trim().length > 0) {
         const m = (r.duration || "").match(/(\d+)h.*?(\d+)\s*m?/i);
-        const mins =
-          m ? parseInt(m[1] || "0", 10) * 60 + parseInt(m[2] || "0", 10) : 99999;
+        const mins = (m ? parseInt(m[1] || "0", 10) * 60 + parseInt(m[2] || "0", 10) : 99999);
         const maxMins = parseInt(values.maxDuration, 10) * 60;
         if (mins > maxMins) return false;
       }
@@ -117,7 +80,6 @@ export default function Home() {
       return true;
     });
 
-    // imitera nätverk
     setTimeout(() => {
       const data: Train[] = found.map((r, i) => ({
         id: i + 1,
@@ -143,25 +105,17 @@ export default function Home() {
         <meta name="description" content={metaDesc} />
         <link rel="canonical" href="https://gobytrain.co/" />
         <meta name="robots" content="index,follow" />
-
-        {/* Open Graph */}
         <meta property="og:title" content={metaTitle} />
         <meta property="og:description" content={metaDesc} />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://gobytrain.co/" />
-
-        {/* JSON-LD (osynligt för användare, synligt för sökmotorer) */}
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdWebsite) }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdFAQ) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </Head>
 
-      {/* --- HERO (oförändrad layout) --- */}
+      {/* --- HERO (oförändrad layout enligt din version) --- */}
       <section className="bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)]">
         <div className="max-w-5xl px-4 py-12 sm:py-16 mx-auto">
           <h1 className="text-center text-3xl sm:text-4xl font-semibold text-slate-900">
@@ -171,7 +125,7 @@ export default function Home() {
             Fast, reliable results. Book with trusted partners.
           </p>
 
-          {/* Kort beskrivning – ligger redan i din layout och lämnas orörd */}
+          {/* Kort info – text, ingen komponent/layout-ändring */}
           <p className="mt-4 text-center text-gray-700 max-w-2xl mx-auto">
             GoByTrain helps you compare prices, durations and operators across
             Europe so you can book with confidence. Start by entering your
@@ -179,27 +133,19 @@ export default function Home() {
           </p>
 
           <div className="mt-8 mx-auto max-w-xl">
-            <SearchForm
-              initialValues={initialValues}
-              onSearch={handleSearch}
-              loading={loading}
-            />
+            <SearchForm initialValues={initialValues} onSearch={handleSearch} loading={loading} />
           </div>
         </div>
       </section>
 
-      {/* --- RESULTS (oförändrad layout) --- */}
+      {/* --- RESULTS (oförändrad layout enligt din version) --- */}
       <section className="mx-auto w-full max-w-5xl px-4 pb-16 -mt-3">
         <div className="rounded-xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
           {loading ? (
             <div className="flex flex-col items-center gap-3 py-8 text-slate-500">
               <svg className="h-6 w-6 animate-spin" viewBox="0 0 24 24" aria-hidden="true">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" fill="none" />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
               </svg>
               <span>Searching routes…</span>
             </div>

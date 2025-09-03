@@ -1,0 +1,36 @@
+* [33m9f2c3e0[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32msitemap-add[m[33m, [m[1;31morigin/sitemap-add[m[33m)[m Add sitemap.xml
+[31m|[m *[34m-[m[34m.[m   [33m11b8f36[m[33m ([m[1;35mrefs/stash[m[33m)[m On (no branch): temp-restore-6d57e5b
+[31m|[m [32m|[m[33m\[m [34m\[m  
+[31m|[m [32m|[m [33m|[m * [33m384b510[m untracked files on (no branch): 6c38992 Update index.js
+[31m|[m [32m|[m * [33m10214a5[m index on (no branch): 6c38992 Update index.js
+[31m|[m [32m|[m[32m/[m  
+[31m|[m [32m|[m * [33m5c9b2ed[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m Ta bort node_modules och .next från versionering
+[31m|[m [32m|[m * [33mc9b139c[m Cleanup: remove build and cache files from repo
+[31m|[m [32m|[m[31m/[m  
+[31m|[m[31m/[m[32m|[m   
+* [32m|[m [33m6d57e5b[m Deploy latest design
+* [32m|[m [33ma9a5587[m Update index.js
+* [32m|[m [33m69e9106[m Update index.js
+* [32m|[m [33m2b0e144[m Update index.js
+* [32m|[m [33m6bf649c[m Update index.js
+* [32m|[m [33m3a42ed3[m Update index.js
+[32m|[m[32m/[m  
+* [33m6c38992[m Update index.js
+* [33m48193ba[m Update homepage content
+* [33m1d0ea31[m Add Next.js boilerplate files
+* [33mfd56418[m Add initial project filesså?
+* [33m1cd18df[m[33m ([m[1;31morigin/safety-merge-aug29[m[33m, [m[1;32msafety-merge-aug29[m[33m)[m Ta bort node_modules och .next från versionering
+*   [33m3ba1b2b[m Resolve merge: keep pages/index.js from origin/main
+[1;31m|[m[1;32m\[m  
+[1;31m|[m * [33m5d4209f[m Update index.js
+[1;31m|[m * [33ma182fcf[m Update index.js
+[1;31m|[m * [33mf215637[m Update index.js
+[1;31m|[m * [33ma1fd4fa[m Update index.js
+* [1;32m|[m [33mc3f103f[m Cleanup: remove build and cache files from repo
+* [1;32m|[m [33mc760d45[m Deploy latest design
+[1;32m|[m[1;32m/[m  
+* [33mb334fda[m Update index.js
+* [33m28e2eb1[m Update index.js
+* [33med5efb6[m Update homepage content
+* [33meb39591[m Add Next.js boilerplate files
+* [33md099e3c[m Add initial project filesså?
