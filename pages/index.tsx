@@ -16,9 +16,9 @@ type SearchFormValues = {
   maxDuration?: string;
 };
 
-// ---- Train-typ anpassad till ResultsList (id = string) ----
+// ---- Train-typ (nu matchad till ResultsList) ----
 type Train = {
-  id: string;            // <- ändrat till string
+  id: string;
   from: string;
   to: string;
   date: string;
@@ -26,7 +26,7 @@ type Train = {
   arrival: string;
   duration: string;
   price: string;
-  changes: string;
+  changes: number;       // ändrat till number
   operator: string;
   train: string;
 };
@@ -106,7 +106,7 @@ export default function Home() {
 
     setTimeout(() => {
       const data: Train[] = found.map((r, i) => ({
-        id: String(i + 1),   // <- string, inte number
+        id: String(i + 1),
         from: r.from,
         to: r.to,
         date: values.date || "",
@@ -114,7 +114,7 @@ export default function Home() {
         arrival: r.arrival,
         duration: r.duration,
         price: r.price,
-        changes: String(r.changes ?? ""),
+        changes: Number(r.changes ?? 0),   // fixat till number
         operator: r.operator,
         train: r.train,
       }));
@@ -130,14 +130,10 @@ export default function Home() {
         <meta name="description" content={metaDesc} />
         <link rel="canonical" href="https://gobytrain.co/" />
         <meta name="robots" content="index,follow" />
-
-        {/* Open Graph */}
         <meta property="og:title" content={metaTitle} />
         <meta property="og:description" content={metaDesc} />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://gobytrain.co/" />
-
-        {/* JSON-LD */}
         <script
           type="application/ld+json"
           // @ts-ignore
