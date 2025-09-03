@@ -7,13 +7,26 @@ import SearchForm from "../components/SearchForm";
 import ResultsList from "../components/ResultsList";
 import { searchRoutes } from "../utils/searchRoutes";
 
-// ---- Form-typ (lokal) ----
+// ---- Lokala typer (vi importerar inga typer från komponenter) ----
 type SearchFormValues = {
   from: string;
   to: string;
   date: string;
   maxPrice?: string;
   maxDuration?: string;
+};
+
+type Train = {
+  id: number;
+  from: string;
+  to: string;
+  departure: string;
+  arrival: string;
+  duration: string;
+  price: string;
+  changes: string;        // normaliseras till string här nere
+  operator: string;
+  train: string;
 };
 
 // ---- SEO (metadata – ingen layout) ----
@@ -35,9 +48,7 @@ const jsonLd = {
 
 export default function Home() {
   const router = useRouter();
-
-  // Viktigt: any[] så vi inte krockar med typdefinitioner i ResultsList
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<Train[]>([]);
   const [loading, setLoading] = useState(false);
 
   const initialValues: SearchFormValues = useMemo(() => {
@@ -63,7 +74,9 @@ export default function Home() {
             to: initialValues.to,
             date: initialValues.date,
             ...(initialValues.maxPrice ? { maxPrice: initialValues.maxPrice } : {}),
-            ...(initialValues.maxDuration ? { maxDuration: initialValues.maxDuration } : {}),
+            ...(initialValues.maxDuration
+              ? { maxDuration: initialValues.maxDuration }
+              : {}),
           },
         },
         undefined,
@@ -76,36 +89,36 @@ export default function Home() {
   async function handleSearch(values: SearchFormValues) {
     setLoading(true);
 
-    // Filtrering
+    // Filtrera enligt ev. maxDuration (h) och maxPrice (€)
     const found = searchRoutes(values.from, values.to, values.date).filter((r) => {
       if (values.maxDuration && values.maxDuration.trim().length > 0) {
-        const m = String(r.duration || "").match(/(\d+)h.*?(\d+)\s*m?/i);
+        const m = (r.duration || "").match(/(\d+)h.*?(\d+)\s*m?/i);
         const mins =
           m ? parseInt(m[1] || "0", 10) * 60 + parseInt(m[2] || "0", 10) : 99999;
         const maxMins = parseInt(values.maxDuration, 10) * 60;
         if (mins > maxMins) return false;
       }
       if (values.maxPrice && values.maxPrice.trim().length > 0) {
-        const priceNum = parseInt(String(r.price || "").replace(/[^0-9]/g, ""), 10) || 0;
+        const priceNum = parseInt((r.price || "").replace(/[^0-9]/g, ""), 10) || 0;
         const max = parseInt(values.maxPrice, 10);
         if (priceNum > max) return false;
       }
       return true;
     });
 
-    // Mappa till det format ResultsList förväntar sig – tvinga allt till string
+    // Imitera nätverk och normalisera typer (särskilt `changes` -> string)
     setTimeout(() => {
-      const data = found.map((r: any, i: number) => ({
+      const data: Train[] = found.map((r, i) => ({
         id: i + 1,
-        from: String(r.from ?? ""),
-        to: String(r.to ?? ""),
-        departure: String(r.departure ?? ""),
-        arrival: String(r.arrival ?? ""),
-        duration: String(r.duration ?? ""),
-        price: String(r.price ?? ""),
-        changes: String(r.changes ?? ""),
-        operator: String(r.operator ?? ""),
-        train: String(r.train ?? ""),
+        from: r.from,
+        to: r.to,
+        departure: r.departure,
+        arrival: r.arrival,
+        duration: r.duration,
+        price: r.price,
+        changes: String((r as any).changes ?? ""), // <- fixar number/string-mismatch
+        operator: (r as any).operator,
+        train: (r as any).train,
       }));
       setResults(data);
       setLoading(false);
@@ -119,10 +132,14 @@ export default function Home() {
         <meta name="description" content={metaDesc} />
         <link rel="canonical" href="https://gobytrain.co/" />
         <meta name="robots" content="index,follow" />
+
+        {/* Open Graph */}
         <meta property="og:title" content={metaTitle} />
         <meta property="og:description" content={metaDesc} />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://gobytrain.co/" />
+
+        {/* JSON-LD */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -139,7 +156,7 @@ export default function Home() {
             Fast, reliable results. Book with trusted partners.
           </p>
 
-          {/* Kort info (ren text) */}
+          {/* Kort info – text, ingen komponent/layout-ändring */}
           <p className="mt-4 text-center text-gray-700 max-w-2xl mx-auto">
             GoByTrain helps you compare prices, durations and operators across
             Europe so you can book with confidence. Start by entering your
@@ -150,7 +167,7 @@ export default function Home() {
             <SearchForm
               initialValues={initialValues}
               onSearch={handleSearch}
-              loading={loading}
+              /* OBS: vi skickar inte loading här längre – det fällde bygget */
             />
           </div>
         </div>
@@ -163,11 +180,7 @@ export default function Home() {
             <div className="flex flex-col items-center gap-3 py-8 text-slate-500">
               <svg className="h-6 w-6 animate-spin" viewBox="0 0 24 24" aria-hidden="true">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" fill="none" />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
               </svg>
               <span>Searching routes…</span>
             </div>
