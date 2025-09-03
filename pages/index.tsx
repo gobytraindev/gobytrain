@@ -29,7 +29,7 @@ const jsonLd = {
     "query-input": "required name=from required name=to optional name=date",
   },
 };
-interface Train {
+type Train = {
   id: number;
   from: string;
   to: string;
@@ -37,10 +37,10 @@ interface Train {
   arrival: string;
   duration: string;
   price: string;
-  changes: string;
+  changes: string | number;  // ändrat här
   operator: string;
   train: string;
-}
+};
 export default function Home() {
   const router = useRouter();
   const [results, setResults] = useState<Train[]>([]);
