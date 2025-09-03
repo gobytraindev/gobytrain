@@ -122,7 +122,43 @@ export default function Home() {
       setLoading(false);
     }, 400);
   }
+<Head>
+  <title>GoByTrain — Find the best train routes in Europe</title>
+  <meta
+    name="description"
+    content="Search, compare and book train journeys across Europe with GoByTrain. Fast, reliable results from trusted partners."
+  />
+  <link rel="canonical" href="https://gobytrain.co/" />
+  <meta name="robots" content="index,follow" />
 
+  {/* Open Graph */}
+  <meta property="og:title" content="GoByTrain — Find the best train routes in Europe" />
+  <meta
+    property="og:description"
+    content="Search, compare and book train journeys across Europe with GoByTrain. Fast, reliable results from trusted partners."
+  />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://gobytrain.co/" />
+
+  {/* JSON-LD */}
+  <script
+    type="application/ld+json"
+    // @ts-ignore
+    dangerouslySetInnerHTML={{
+      __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        name: "GoByTrain",
+        url: "https://gobytrain.co/",
+        potentialAction: {
+          "@type": "SearchAction",
+          target: "https://gobytrain.co/details?from={from}&to={to}&date={date}",
+          "query-input": "required name=from required name=to optional name=date",
+        },
+      }),
+    }}
+  />
+</Head>
   return (
     <>
       <Head>
