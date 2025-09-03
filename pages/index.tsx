@@ -4,7 +4,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 
 import SearchForm from "../components/SearchForm";
-import ResultsList, { Train } from "../components/ResultsList";
+import ResultsList from "../components/ResultsList";
 import { searchRoutes } from "../utils/searchRoutes";
 
 // Formvärden vi använder lokalt
