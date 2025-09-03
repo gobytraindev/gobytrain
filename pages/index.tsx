@@ -7,22 +7,56 @@ import SearchForm, { SearchFormValues } from "../components/SearchForm";
 import ResultsList, { Train } from "../components/ResultsList";
 import { searchRoutes } from "../utils/searchRoutes";
 
-// ---- SEO content (bara innehåll/metadata, ingen layout) ----
+// ---- SEO content (bara metadata/innehåll för sökmotorer – ingen layout förändras) ----
 const metaTitle = "GoByTrain — Find the best train routes in Europe";
 const metaDesc =
   "Search, compare and book train journeys across Europe with GoByTrain. Fast, reliable results from trusted partners.";
 
-const jsonLd = {
+const jsonLdWebsite = {
   "@context": "https://schema.org",
   "@type": "WebSite",
   name: "GoByTrain",
   url: "https://gobytrain.co/",
   potentialAction: {
     "@type": "SearchAction",
-    target:
-      "https://gobytrain.co/details?from={from}&to={to}&date={date}",
+    target: "https://gobytrain.co/details?from={from}&to={to}&date={date}",
     "query-input": "required name=from required name=to optional name=date",
   },
+};
+
+// Ett extra osynligt FAQ-schema (ger mer kontext, påverkar inte layouten)
+const jsonLdFAQ = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "How do I search for European train routes?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text:
+          "Enter your origin, destination and date. GoByTrain compares operators, durations and indicative prices so you can pick a suitable journey.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Can I book tickets on GoByTrain?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text:
+          "Search and comparison happen on GoByTrain. Booking is completed with trusted partners shown alongside each result.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Which countries are covered?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text:
+          "Major routes across Sweden, Norway, Denmark, Germany, France, Italy, Spain, the Netherlands and more.",
+      },
+    },
+  ],
 };
 
 export default function Home() {
@@ -45,7 +79,6 @@ export default function Home() {
     const hasQuery =
       !!initialValues.from || !!initialValues.to || !!initialValues.date;
     if (hasQuery) {
-      // håll URL i synk med formulärvärden
       router.replace(
         {
           pathname: router.pathname,
@@ -72,7 +105,7 @@ export default function Home() {
       if (values.maxDuration && values.maxDuration.trim().length > 0) {
         const m = (r.duration || "").match(/(\d+)h.*?(\d+)\s*m?/i);
         const mins =
-          (m ? parseInt(m[1] || "0", 10) * 60 + parseInt(m[2] || "0", 10) : 99999);
+          m ? parseInt(m[1] || "0", 10) * 60 + parseInt(m[2] || "0", 10) : 99999;
         const maxMins = parseInt(values.maxDuration, 10) * 60;
         if (mins > maxMins) return false;
       }
@@ -117,10 +150,14 @@ export default function Home() {
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://gobytrain.co/" />
 
-        {/* JSON-LD */}
+        {/* JSON-LD (osynligt för användare, synligt för sökmotorer) */}
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdWebsite) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdFAQ) }}
         />
       </Head>
 
@@ -134,7 +171,7 @@ export default function Home() {
             Fast, reliable results. Book with trusted partners.
           </p>
 
-          {/* Liten beskrivning för att undvika Soft 404 (utan att ändra layout) */}
+          {/* Kort beskrivning – ligger redan i din layout och lämnas orörd */}
           <p className="mt-4 text-center text-gray-700 max-w-2xl mx-auto">
             GoByTrain helps you compare prices, durations and operators across
             Europe so you can book with confidence. Start by entering your
@@ -142,7 +179,11 @@ export default function Home() {
           </p>
 
           <div className="mt-8 mx-auto max-w-xl">
-            <SearchForm initialValues={initialValues} onSearch={handleSearch} loading={loading} />
+            <SearchForm
+              initialValues={initialValues}
+              onSearch={handleSearch}
+              loading={loading}
+            />
           </div>
         </div>
       </section>
@@ -155,7 +196,8 @@ export default function Home() {
               <svg className="h-6 w-6 animate-spin" viewBox="0 0 24 24" aria-hidden="true">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" fill="none" />
                 <path
-                  className="opacity-75" fill="currentColor"
+                  className="opacity-75"
+                  fill="currentColor"
                   d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
                 />
               </svg>
