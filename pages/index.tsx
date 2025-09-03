@@ -7,13 +7,28 @@ import SearchForm from "../components/SearchForm";
 import ResultsList from "../components/ResultsList";
 import { searchRoutes } from "../utils/searchRoutes";
 
-// Formvärden vi använder lokalt
+// ---- Formvärden (lokalt) ----
 type SearchFormValues = {
   from: string;
   to: string;
   date: string;
   maxPrice?: string;
   maxDuration?: string;
+};
+
+// ---- Resultatobjekt som ResultsList behöver ----
+type Train = {
+  id: number;
+  from: string;
+  to: string;
+  date: string;            // <- VIKTIGT: krävs av ResultsList
+  departure: string;
+  arrival: string;
+  duration: string;
+  price: string;
+  changes: string | number;
+  operator: string;
+  train: string;
 };
 
 // ---- SEO (metadata – ingen layout) ----
@@ -32,18 +47,7 @@ const jsonLd = {
     "query-input": "required name=from required name=to optional name=date",
   },
 };
-type Train = {
-  id: number;
-  from: string;
-  to: string;
-  departure: string;
-  arrival: string;
-  duration: string;
-  price: string;
-  changes: string | number;
-  operator: string;
-  train: string;
-};
+
 export default function Home() {
   const router = useRouter();
   const [results, setResults] = useState<Train[]>([]);
@@ -103,18 +107,18 @@ export default function Home() {
       return true;
     });
 
-    // Imitera nätverk och mappa till Train (från ResultsList) — inkl. date
+    // Imitera nätverk och mappa till Train (inkl. date)
     setTimeout(() => {
       const data: Train[] = found.map((r, i) => ({
         id: i + 1,
         from: r.from,
         to: r.to,
-        date: values.date || "",            // <-- viktigt: krävs av Train-typen
+        date: values.date || "",
         departure: r.departure,
         arrival: r.arrival,
         duration: r.duration,
         price: r.price,
-        changes: String(r.changes ?? ""),   // normalisera till string om nödvändigt
+        changes: String(r.changes ?? ""),
         operator: r.operator,
         train: r.train,
       }));
@@ -163,7 +167,7 @@ export default function Home() {
           </p>
 
           <div className="mt-8 mx-auto max-w-xl">
-            {/* Viktigt: skicka bara props som SearchForm faktiskt har */}
+            {/* Skicka endast props som SearchForm har */}
             <SearchForm initialValues={initialValues} onSearch={handleSearch} />
           </div>
         </div>
