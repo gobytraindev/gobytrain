@@ -6,6 +6,8 @@ import { useRouter } from "next/router";
 import SearchForm from "../components/SearchForm";
 import ResultsList from "../components/ResultsList";
 import { searchRoutes } from "../utils/searchRoutes";
+
+// ---- Form-typ (lokal) ----
 type SearchFormValues = {
   from: string;
   to: string;
@@ -13,6 +15,7 @@ type SearchFormValues = {
   maxPrice?: string;
   maxDuration?: string;
 };
+
 // ---- SEO (metadata – ingen layout) ----
 const metaTitle = "GoByTrain — Find the best train routes in Europe";
 const metaDesc =
@@ -29,21 +32,12 @@ const jsonLd = {
     "query-input": "required name=from required name=to optional name=date",
   },
 };
-type Train = {
-  id: number;
-  from: string;
-  to: string;
-  departure: string;
-  arrival: string;
-  duration: string;
-  price: string;
-  changes: string | number;  // ändrat här
-  operator: string;
-  train: string;
-};
+
 export default function Home() {
   const router = useRouter();
-  const [results, setResults] = useState<Train[]>([]);
+
+  // Viktigt: any[] så vi inte krockar med typdefinitioner i ResultsList
+  const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
   const initialValues: SearchFormValues = useMemo(() => {
@@ -82,33 +76,36 @@ export default function Home() {
   async function handleSearch(values: SearchFormValues) {
     setLoading(true);
 
+    // Filtrering
     const found = searchRoutes(values.from, values.to, values.date).filter((r) => {
       if (values.maxDuration && values.maxDuration.trim().length > 0) {
-        const m = (r.duration || "").match(/(\d+)h.*?(\d+)\s*m?/i);
-        const mins = (m ? parseInt(m[1] || "0", 10) * 60 + parseInt(m[2] || "0", 10) : 99999);
+        const m = String(r.duration || "").match(/(\d+)h.*?(\d+)\s*m?/i);
+        const mins =
+          m ? parseInt(m[1] || "0", 10) * 60 + parseInt(m[2] || "0", 10) : 99999;
         const maxMins = parseInt(values.maxDuration, 10) * 60;
         if (mins > maxMins) return false;
       }
       if (values.maxPrice && values.maxPrice.trim().length > 0) {
-        const priceNum = parseInt((r.price || "").replace(/[^0-9]/g, ""), 10) || 0;
+        const priceNum = parseInt(String(r.price || "").replace(/[^0-9]/g, ""), 10) || 0;
         const max = parseInt(values.maxPrice, 10);
         if (priceNum > max) return false;
       }
       return true;
     });
 
+    // Mappa till det format ResultsList förväntar sig – tvinga allt till string
     setTimeout(() => {
-      const data: Train[] = found.map((r, i) => ({
+      const data = found.map((r: any, i: number) => ({
         id: i + 1,
-        from: r.from,
-        to: r.to,
-        departure: r.departure,
-        arrival: r.arrival,
-        duration: r.duration,
-        price: r.price,
-        changes: r.changes,
-        operator: r.operator,
-        train: r.train,
+        from: String(r.from ?? ""),
+        to: String(r.to ?? ""),
+        departure: String(r.departure ?? ""),
+        arrival: String(r.arrival ?? ""),
+        duration: String(r.duration ?? ""),
+        price: String(r.price ?? ""),
+        changes: String(r.changes ?? ""),
+        operator: String(r.operator ?? ""),
+        train: String(r.train ?? ""),
       }));
       setResults(data);
       setLoading(false);
@@ -132,7 +129,7 @@ export default function Home() {
         />
       </Head>
 
-      {/* --- HERO (oförändrad layout enligt din version) --- */}
+      {/* --- HERO (oförändrad layout) --- */}
       <section className="bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)]">
         <div className="max-w-5xl px-4 py-12 sm:py-16 mx-auto">
           <h1 className="text-center text-3xl sm:text-4xl font-semibold text-slate-900">
@@ -142,7 +139,7 @@ export default function Home() {
             Fast, reliable results. Book with trusted partners.
           </p>
 
-          {/* Kort info – text, ingen komponent/layout-ändring */}
+          {/* Kort info (ren text) */}
           <p className="mt-4 text-center text-gray-700 max-w-2xl mx-auto">
             GoByTrain helps you compare prices, durations and operators across
             Europe so you can book with confidence. Start by entering your
@@ -150,19 +147,27 @@ export default function Home() {
           </p>
 
           <div className="mt-8 mx-auto max-w-xl">
-            <SearchForm initialValues={initialValues} onSearch={handleSearch} loading={loading} />
+            <SearchForm
+              initialValues={initialValues}
+              onSearch={handleSearch}
+              loading={loading}
+            />
           </div>
         </div>
       </section>
 
-      {/* --- RESULTS (oförändrad layout enligt din version) --- */}
+      {/* --- RESULTS (oförändrad layout) --- */}
       <section className="mx-auto w-full max-w-5xl px-4 pb-16 -mt-3">
         <div className="rounded-xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
           {loading ? (
             <div className="flex flex-col items-center gap-3 py-8 text-slate-500">
               <svg className="h-6 w-6 animate-spin" viewBox="0 0 24 24" aria-hidden="true">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" fill="none" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                />
               </svg>
               <span>Searching routes…</span>
             </div>
