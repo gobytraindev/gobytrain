@@ -180,7 +180,7 @@ export default function Home() {
               <p className="text-sm">Try a search above or adjust your filters.</p>
             </div>
           ) : (
-            <ResultsList results={results} />
+            <ResultsList results={results} loading={loading} />
           )}
         </div>
       </section>
