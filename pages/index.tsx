@@ -32,7 +32,18 @@ const jsonLd = {
     "query-input": "required name=from required name=to optional name=date",
   },
 };
-
+type Train = {
+  id: number;
+  from: string;
+  to: string;
+  departure: string;
+  arrival: string;
+  duration: string;
+  price: string;
+  changes: string | number;
+  operator: string;
+  train: string;
+};
 export default function Home() {
   const router = useRouter();
   const [results, setResults] = useState<Train[]>([]);
