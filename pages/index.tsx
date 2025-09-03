@@ -16,22 +16,22 @@ type SearchFormValues = {
   maxDuration?: string;
 };
 
-// ---- Resultatobjekt som ResultsList behöver ----
+// ---- Train-typ anpassad till ResultsList (id = string) ----
 type Train = {
-  id: number;
+  id: string;            // <- ändrat till string
   from: string;
   to: string;
-  date: string;            // <- VIKTIGT: krävs av ResultsList
+  date: string;
   departure: string;
   arrival: string;
   duration: string;
   price: string;
-  changes: string | number;
+  changes: string;
   operator: string;
   train: string;
 };
 
-// ---- SEO (metadata – ingen layout) ----
+// ---- SEO ----
 const metaTitle = "GoByTrain — Find the best train routes in Europe";
 const metaDesc =
   "Search, compare and book train journeys across Europe with GoByTrain. Fast, reliable results from trusted partners.";
@@ -64,7 +64,6 @@ export default function Home() {
     };
   }, [router.query]);
 
-  // Håll URL:en i synk med formulärvärden (utan att påverka layout)
   useEffect(() => {
     const hasQuery =
       !!initialValues.from || !!initialValues.to || !!initialValues.date;
@@ -84,13 +83,11 @@ export default function Home() {
         { shallow: true }
       );
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialValues.from, initialValues.to, initialValues.date]);
 
   async function handleSearch(values: SearchFormValues) {
     setLoading(true);
 
-    // Filtrera enligt maxDuration (h) och maxPrice (€) om angivet
     const found = searchRoutes(values.from, values.to, values.date).filter((r) => {
       if (values.maxDuration && values.maxDuration.trim()) {
         const m = (r.duration || "").match(/(\d+)h.*?(\d+)\s*m?/i);
@@ -107,10 +104,9 @@ export default function Home() {
       return true;
     });
 
-    // Imitera nätverk och mappa till Train (inkl. date)
     setTimeout(() => {
       const data: Train[] = found.map((r, i) => ({
-        id: i + 1,
+        id: String(i + 1),   // <- string, inte number
         from: r.from,
         to: r.to,
         date: values.date || "",
@@ -149,7 +145,6 @@ export default function Home() {
         />
       </Head>
 
-      {/* --- HERO (oförändrad layout) --- */}
       <section className="bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)]">
         <div className="max-w-5xl px-4 py-12 sm:py-16 mx-auto">
           <h1 className="text-center text-3xl sm:text-4xl font-semibold text-slate-900">
@@ -158,22 +153,17 @@ export default function Home() {
           <p className="mt-2 text-center text-slate-500">
             Fast, reliable results. Book with trusted partners.
           </p>
-
-          {/* Kort info för att undvika “Soft 404” utan att ändra layout */}
           <p className="mt-4 text-center text-gray-700 max-w-2xl mx-auto">
             GoByTrain helps you compare prices, durations and operators across
             Europe so you can book with confidence. Start by entering your
             route and date above.
           </p>
-
           <div className="mt-8 mx-auto max-w-xl">
-            {/* Skicka endast props som SearchForm har */}
             <SearchForm initialValues={initialValues} onSearch={handleSearch} />
           </div>
         </div>
       </section>
 
-      {/* --- RESULTS (oförändrad layout) --- */}
       <section className="mx-auto w-full max-w-5xl px-4 pb-16 -mt-3">
         <div className="rounded-xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
           {loading ? (
