@@ -1,58 +1,18 @@
 // pages/index.tsx
-import React, { useEffect, useMemo, useState } from "react";
-import Head from "next/head";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 
-import SearchForm from "../components/SearchForm";
-import ResultsList from "../components/ResultsList";
+import SearchForm, { type SearchFormValues } from "../components/SearchForm";
+import ResultsList, { type Train } from "../components/ResultsList";
 import { searchRoutes } from "../utils/searchRoutes";
-
-// ---- Formvärden (lokalt) ----
-type SearchFormValues = {
-  from: string;
-  to: string;
-  date: string;
-  maxPrice?: string;
-  maxDuration?: string;
-};
-
-// ---- Train-typ (nu matchad till ResultsList) ----
-type Train = {
-  id: string;
-  from: string;
-  to: string;
-  date: string;
-  departure: string;
-  arrival: string;
-  duration: string;
-  price: string;
-  changes: number;       // ändrat till number
-  operator: string;
-  train: string;
-};
-
-// ---- SEO ----
-const metaTitle = "GoByTrain — Find the best train routes in Europe";
-const metaDesc =
-  "Search, compare and book train journeys across Europe with GoByTrain. Fast, reliable results from trusted partners.";
-
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  name: "GoByTrain",
-  url: "https://gobytrain.co/",
-  potentialAction: {
-    "@type": "SearchAction",
-    target: "https://gobytrain.co/details?from={from}&to={to}&date={date}",
-    "query-input": "required name=from required name=to optional name=date",
-  },
-};
+import SeoHead from "../components/SeoHead";
 
 export default function Home() {
   const router = useRouter();
   const [results, setResults] = useState<Train[]>([]);
   const [loading, setLoading] = useState(false);
 
+  // Hämta initiala värden från URL:en
   const initialValues: SearchFormValues = useMemo(() => {
     const { from, to, date, maxPrice, maxDuration } = router.query;
     return {
@@ -64,9 +24,11 @@ export default function Home() {
     };
   }, [router.query]);
 
+  // Håll URL:en i synk med formulärvärden (påverkar inte layouten)
   useEffect(() => {
     const hasQuery =
       !!initialValues.from || !!initialValues.to || !!initialValues.date;
+
     if (hasQuery) {
       router.replace(
         {
@@ -83,27 +45,34 @@ export default function Home() {
         { shallow: true }
       );
     }
-  }, [initialValues.from, initialValues.to, initialValues.date]);
+  }, [initialValues.from, initialValues.to, initialValues.date, initialValues.maxPrice, initialValues.maxDuration, router]);
 
-  async function handleSearch(values: SearchFormValues) {
+  // Sök + filtrera
+  function handleSearch(values: SearchFormValues) {
     setLoading(true);
 
     const found = searchRoutes(values.from, values.to, values.date).filter((r) => {
+      // maxDuration (i timmar) → jämför i minuter
       if (values.maxDuration && values.maxDuration.trim()) {
-        const m = (r.duration || "").match(/(\d+)h.*?(\d+)\s*m?/i);
-        const mins =
-          (m ? parseInt(m[1] || "0", 10) * 60 + parseInt(m[2] || "0", 10) : 99999);
+        const m = (r.duration || "").match(/(\d+)\s*h.*?(\d+)\s*m?/i);
+        const mins = m
+          ? parseInt(m[1] || "0", 10) * 60 + parseInt(m[2] || "0", 10)
+          : 99999;
         const maxMins = parseInt(values.maxDuration, 10) * 60;
         if (mins > maxMins) return false;
       }
+
+      // maxPrice (€)
       if (values.maxPrice && values.maxPrice.trim()) {
         const priceNum = parseInt((r.price || "").replace(/[^0-9]/g, ""), 10) || 0;
         const max = parseInt(values.maxPrice, 10);
         if (priceNum > max) return false;
       }
+
       return true;
     });
 
+    // Imitera nätverk och mappa till Train (som ResultsList förväntar)
     setTimeout(() => {
       const data: Train[] = found.map((r, i) => ({
         id: String(i + 1),
@@ -114,7 +83,7 @@ export default function Home() {
         arrival: r.arrival,
         duration: r.duration,
         price: r.price,
-        changes: Number(r.changes ?? 0),   // fixat till number
+        changes: Number(r.changes ?? 0),
         operator: r.operator,
         train: r.train,
       }));
@@ -122,61 +91,13 @@ export default function Home() {
       setLoading(false);
     }, 400);
   }
-<Head>
-  <title>GoByTrain — Find the best train routes in Europe</title>
-  <meta
-    name="description"
-    content="Search, compare and book train journeys across Europe with GoByTrain. Fast, reliable results from trusted partners."
-  />
-  <link rel="canonical" href="https://gobytrain.co/" />
-  <meta name="robots" content="index,follow" />
 
-  {/* Open Graph */}
-  <meta property="og:title" content="GoByTrain — Find the best train routes in Europe" />
-  <meta
-    property="og:description"
-    content="Search, compare and book train journeys across Europe with GoByTrain. Fast, reliable results from trusted partners."
-  />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://gobytrain.co/" />
-
-  {/* JSON-LD */}
-  <script
-    type="application/ld+json"
-    // @ts-ignore
-    dangerouslySetInnerHTML={{
-      __html: JSON.stringify({
-        "@context": "https://schema.org",
-        "@type": "WebSite",
-        name: "GoByTrain",
-        url: "https://gobytrain.co/",
-        potentialAction: {
-          "@type": "SearchAction",
-          target: "https://gobytrain.co/details?from={from}&to={to}&date={date}",
-          "query-input": "required name=from required name=to optional name=date",
-        },
-      }),
-    }}
-  />
-</Head>
   return (
     <>
-      <Head>
-        <title>{metaTitle}</title>
-        <meta name="description" content={metaDesc} />
-        <link rel="canonical" href="https://gobytrain.co/" />
-        <meta name="robots" content="index,follow" />
-        <meta property="og:title" content={metaTitle} />
-        <meta property="og:description" content={metaDesc} />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://gobytrain.co/" />
-        <script
-          type="application/ld+json"
-          // @ts-ignore
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
-      </Head>
+      {/* SEO (ingen layoutförändring) */}
+      <SeoHead />
 
+      {/* --- HERO (oförändrad layout) --- */}
       <section className="bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)]">
         <div className="max-w-5xl px-4 py-12 sm:py-16 mx-auto">
           <h1 className="text-center text-3xl sm:text-4xl font-semibold text-slate-900">
@@ -185,23 +106,34 @@ export default function Home() {
           <p className="mt-2 text-center text-slate-500">
             Fast, reliable results. Book with trusted partners.
           </p>
+
+          {/* Kort info – text, ingen komponent/layout-ändring */}
           <p className="mt-4 text-center text-gray-700 max-w-2xl mx-auto">
             GoByTrain helps you compare prices, durations and operators across
             Europe so you can book with confidence. Start by entering your
             route and date above.
           </p>
+
           <div className="mt-8 mx-auto max-w-xl">
             <SearchForm initialValues={initialValues} onSearch={handleSearch} />
           </div>
         </div>
       </section>
 
+      {/* --- RESULTS (oförändrad layout) --- */}
       <section className="mx-auto w-full max-w-5xl px-4 pb-16 -mt-3">
         <div className="rounded-xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
           {loading ? (
             <div className="flex flex-col items-center gap-3 py-8 text-slate-500">
               <svg className="h-6 w-6 animate-spin" viewBox="0 0 24 24" aria-hidden="true">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" fill="none" />
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  fill="none"
+                />
                 <path
                   className="opacity-75"
                   fill="currentColor"
