@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 
 import SearchForm from "../components/SearchForm";
-import ResultsList, { type Train } from "../components/ResultsList";
+import ResultsList from "../components/ResultsList";
 import { searchRoutes } from "../utils/searchRoutes";
 import SeoHead from "../components/SeoHead";
 
