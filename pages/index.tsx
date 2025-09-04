@@ -4,6 +4,21 @@ import { useRouter } from "next/router";
 
 import SearchForm from "../components/SearchForm";
 import ResultsList from "../components/ResultsList";
+
+// ---- Train-typ (nu matchad till ResultsList) ----
+type Train = {
+  id: string;
+  from: string;
+  to: string;
+  date: string;
+  departure: string;
+  arrival: string;
+  duration: string;
+  price: string;
+  changes: number;
+  operator: string;
+  train: string;
+};
 import { searchRoutes } from "../utils/searchRoutes";
 import SeoHead from "../components/SeoHead";
 
