@@ -12,6 +12,7 @@ export default function Home() {
   const [results, setResults] = useState<Train[]>([]);
   const [loading, setLoading] = useState(false);
 
+  // Hämta initiala värden från URL:en
   const initialValues: SearchFormValues = useMemo(() => {
     const { from, to, date, maxPrice, maxDuration } = router.query;
     return {
@@ -27,56 +28,62 @@ export default function Home() {
   useEffect(() => {
     const hasQuery =
       !!initialValues.from || !!initialValues.to || !!initialValues.date;
-    if (!hasQuery) return;
 
-    router.replace(
-      {
-        pathname: router.pathname,
-        query: {
-          from: initialValues.from,
-          to: initialValues.to,
-          date: initialValues.date,
-          ...(initialValues.maxPrice ? { maxPrice: initialValues.maxPrice } : {}),
-          ...(initialValues.maxDuration ? { maxDuration: initialValues.maxDuration } : {}),
+    if (hasQuery) {
+      router.replace(
+        {
+          pathname: router.pathname,
+          query: {
+            from: initialValues.from,
+            to: initialValues.to,
+            date: initialValues.date,
+            ...(initialValues.maxPrice ? { maxPrice: initialValues.maxPrice } : {}),
+            ...(initialValues.maxDuration ? { maxDuration: initialValues.maxDuration } : {}),
+          },
         },
-      },
-      undefined,
-      { shallow: true }
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialValues.from, initialValues.to, initialValues.date]);
+        undefined,
+        { shallow: true }
+      );
+    }
+  }, [initialValues.from, initialValues.to, initialValues.date, initialValues.maxPrice, initialValues.maxDuration, router]);
 
+  // Sök + filtrera
   function handleSearch(values: SearchFormValues) {
     setLoading(true);
 
-    // Filtrera enligt maxDuration (h) och maxPrice (€) om angivet
     const found = searchRoutes(values.from, values.to, values.date).filter((r) => {
-      if (values.maxDuration && values.maxDuration.trim().length > 0) {
-        const m = (r.duration || "").match(/(\d+)h.*?(\d+)\s*m?/i);
-        const mins =
-          (m ? parseInt(m[1] || "0", 10) * 60 + parseInt(m[2] || "0", 10) : 99999);
+      // maxDuration (i timmar) → jämför i minuter
+      if (values.maxDuration && values.maxDuration.trim()) {
+        const m = (r.duration || "").match(/(\d+)\s*h.*?(\d+)\s*m?/i);
+        const mins = m
+          ? parseInt(m[1] || "0", 10) * 60 + parseInt(m[2] || "0", 10)
+          : 99999;
         const maxMins = parseInt(values.maxDuration, 10) * 60;
         if (mins > maxMins) return false;
       }
-      if (values.maxPrice && values.maxPrice.trim().length > 0) {
+
+      // maxPrice (€)
+      if (values.maxPrice && values.maxPrice.trim()) {
         const priceNum = parseInt((r.price || "").replace(/[^0-9]/g, ""), 10) || 0;
         const max = parseInt(values.maxPrice, 10);
         if (priceNum > max) return false;
       }
+
       return true;
     });
 
-    // Imitera nätverk och mappa till Train
+    // Imitera nätverk och mappa till Train (som ResultsList förväntar)
     setTimeout(() => {
       const data: Train[] = found.map((r, i) => ({
-        id: i + 1,
+        id: String(i + 1),
         from: r.from,
         to: r.to,
+        date: values.date || "",
         departure: r.departure,
         arrival: r.arrival,
         duration: r.duration,
         price: r.price,
-        changes: r.changes,
+        changes: Number(r.changes ?? 0),
         operator: r.operator,
         train: r.train,
       }));
@@ -108,11 +115,7 @@ export default function Home() {
           </p>
 
           <div className="mt-8 mx-auto max-w-xl">
-            <SearchForm
-              initialValues={initialValues}
-              loading={loading}
-              onSearch={handleSearch}
-            />
+            <SearchForm initialValues={initialValues} onSearch={handleSearch} />
           </div>
         </div>
       </section>
@@ -123,7 +126,14 @@ export default function Home() {
           {loading ? (
             <div className="flex flex-col items-center gap-3 py-8 text-slate-500">
               <svg className="h-6 w-6 animate-spin" viewBox="0 0 24 24" aria-hidden="true">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" fill="none" />
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  fill="none"
+                />
                 <path
                   className="opacity-75"
                   fill="currentColor"
@@ -138,7 +148,7 @@ export default function Home() {
               <p className="text-sm">Try a search above or adjust your filters.</p>
             </div>
           ) : (
-            <ResultsList results={results} />
+            <ResultsList results={results} loading={loading} />
           )}
         </div>
       </section>

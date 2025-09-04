@@ -1,14 +1,45 @@
 // pages/_document.tsx
-import { Html, Head, Main, NextScript } from "next/document";
+import Document, { Html, Head, Main, NextScript } from "next/document";
 
-export default function Document() {
-  return (
-    <Html lang="en">
-      <Head />
-      <body>
-        <Main />
-        <NextScript />
-      </body>
-    </Html>
-  );
+export default class MyDocument extends Document {
+  render() {
+    const siteName = "GoByTrain";
+    const title = "GoByTrain — Fast, reliable train routes in Europe";
+    const description =
+      "Find the best train routes in Europe. Smart filters, trusted partners, and no extra fees.";
+    const url = "https://gobytrain.co";
+    const ogImage = `${url}/og-image.png`; // lägg till en bild senare i /public om du vill
+
+    return (
+      <Html lang="en">
+        <Head>
+          {/* Primary meta */}
+          <meta name="theme-color" content="#0f172a" />
+          <meta name="description" content={description} />
+
+          {/* Open Graph */}
+          <meta property="og:type" content="website" />
+          <meta property="og:site_name" content={siteName} />
+          <meta property="og:title" content={title} />
+          <meta property="og:description" content={description} />
+          <meta property="og:url" content={url} />
+          <meta property="og:image" content={ogImage} />
+
+          {/* Twitter */}
+          <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:title" content={title} />
+          <meta name="twitter:description" content={description} />
+          <meta name="twitter:image" content={ogImage} />
+
+          {/* Icons (lägg till filer i /public om du vill byta) */}
+          <link rel="icon" href="/favicon.ico" />
+          <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        </Head>
+        <body className="bg-slate-50">
+          <Main />
+          <NextScript />
+        </body>
+      </Html>
+    );
+  }
 }

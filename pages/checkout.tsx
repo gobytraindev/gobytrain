@@ -1,118 +1,212 @@
 // pages/checkout.tsx
-import { useMemo } from "react";
+import Head from "next/head";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import { buildPartnerUrl, type Partner } from "../lib/partners";
 
-function Row({ label, value }: { label: string; value?: string }) {
-  return (
-    <div className="flex items-start justify-between gap-4 py-2 border-b border-slate-100 last:border-0">
-      <span className="text-slate-500">{label}</span>
-      <span className="font-medium text-slate-900">{value || "—"}</span>
-    </div>
-  );
-}
+type Q = string | string[] | undefined;
+const val = (x: Q) => (Array.isArray(x) ? x[0] ?? "" : x ?? "");
 
-export default function Checkout() {
+export default function CheckoutPage() {
   const router = useRouter();
-  const q = router.query;
 
-  const price = typeof q.price === "string" ? q.price : "";
-  const from = typeof q.from === "string" ? q.from : "";
-  const to = typeof q.to === "string" ? q.to : "";
-  const dep = typeof q.departure === "string" ? q.departure : "";
-  const arr = typeof q.arrival === "string" ? q.arrival : "";
-  const duration = typeof q.duration === "string" ? q.duration : "";
-  const changes = typeof q.changes === "string" ? q.changes : "";
-  const operator = typeof q.operator === "string" ? q.operator : "";
-  const train = typeof q.train === "string" ? q.train : "";
-  const date = typeof q.date === "string" ? q.date : ""; // om vi börjar skicka med
+  const from = val(router.query.from);
+  const to = val(router.query.to);
+  const date = val(router.query.date);
+  const departure = val(router.query.departure);
+  const duration = val(router.query.duration);
+  const transfers = val(router.query.transfers);
+  const price = val(router.query.price);
+  const partner = (val(router.query.partner) || "").toLowerCase(); // "omio" | "trainline" | "sj" | etc.
+  const rid = val(router.query.rid);
 
-  // Välj partner här (snabbt att byta vid test)
-  const partner: Partner = "omio"; // "raileurope" för att testa Rail Europe-URL
-
-  const partnerUrl = useMemo(() => {
-    return buildPartnerUrl(partner, {
-      from,
-      to,
-      date,
-      currency: "EUR",
-      adults: 1,
-      price,
-    });
-  }, [partner, from, to, date, price]);
+  const affiliateUrl = buildAffiliateUrl({
+    partner,
+    from,
+    to,
+    date,
+    departure,
+    duration,
+    transfers,
+    price,
+    rid,
+  });
 
   return (
-    <main className="min-h-screen px-4 py-10">
-      <div className="mx-auto max-w-2xl">
-        <h1 className="text-2xl font-semibold">Checkout</h1>
-        <p className="mt-1 text-slate-500">
-          This is a placeholder summary before redirecting to partner booking.
-        </p>
+    <>
+      <Head>
+        <title>Checkout | GoByTrain</title>
+        <meta
+          name="description"
+          content="Review your route details and continue to a trusted booking partner."
+        />
+      </Head>
 
-        <div className="mt-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="mb-4">
-            <div className="text-sm text-slate-500">
-              {from} → {to}
-            </div>
-            <div className="text-lg font-semibold text-slate-900">
-              {dep} — {arr}
-            </div>
+      <main className="min-h-screen bg-slate-50">
+        <div className="mx-auto max-w-3xl px-4 py-10">
+          {/* Header */}
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-slate-900">Checkout</h1>
+            <p className="mt-1 text-slate-600">
+              Review your selection and continue to our booking partner.
+            </p>
           </div>
 
-          <div className="divide-y divide-slate-100">
-            <Row label="Duration" value={duration} />
-            <Row label="Changes" value={changes || "—"} />
-            <Row
-              label="Operator / Train"
-              value={[operator, train].filter(Boolean).join(" · ") || "—"}
-            />
-            <Row
-              label="Price"
-              value={
-                price
-                  ? price.startsWith("€")
-                    ? price
-                    : `€${price}`
-                  : "—"
-              }
-            />
-          </div>
+          {/* Card */}
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="mb-4 text-sm text-slate-500">Selected route</div>
 
-          <div className="mt-6 flex items-center justify-between">
-            <Link
-              href="/"
-              className="rounded-md border border-slate-300 px-4 py-2 text-sm hover:bg-slate-50"
-            >
-              ← Back
-            </Link>
+            <div className="rounded-xl bg-slate-50 p-4">
+              <div className="text-lg font-semibold text-slate-900">
+                {from || "From"} <span className="mx-2 text-slate-400">→</span> {to || "To"}
+              </div>
 
-            {partnerUrl ? (
+              <div className="mt-2 grid grid-cols-1 gap-2 text-sm text-slate-700 sm:grid-cols-2">
+                <div>
+                  <span className="text-slate-500">Date:</span> {date || "—"}
+                </div>
+                <div>
+                  <span className="text-slate-500">Departure:</span> {departure || "—"}
+                </div>
+                <div>
+                  <span className="text-slate-500">Duration:</span> {duration || "—"}
+                </div>
+                <div>
+                  <span className="text-slate-500">Transfers:</span> {transfers || "—"}
+                </div>
+                <div>
+                  <span className="text-slate-500">Price:</span> {price ? `€${price}` : "—"}
+                </div>
+                <div>
+                  <span className="text-slate-500">Partner:</span>{" "}
+                  {partner ? partnerLabel(partner) : "—"}
+                </div>
+              </div>
+
+              {rid && (
+                <div className="mt-2 text-xs text-slate-500">
+                  Route ID: <span className="font-mono">{rid}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="mt-6 flex items-center justify-between">
+              <Link
+                href={{ pathname: "/", query: { from, to, date } }}
+                className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              >
+                ← Back
+              </Link>
+
               <a
-                href={partnerUrl}
+                href={affiliateUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                className="rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700"
               >
                 Continue to booking
               </a>
-            ) : (
-              <button
-                disabled
-                className="rounded-md bg-slate-300 px-4 py-2 text-sm font-medium text-white cursor-not-allowed"
-                title="Missing partner link"
-              >
-                Continue to booking
-              </button>
-            )}
+            </div>
+
+            <p className="mt-4 text-xs text-slate-500">
+              You’ll complete your purchase on a trusted partner site. We may earn a commission — at no extra cost to you.
+            </p>
           </div>
 
-          <p className="mt-3 text-xs text-slate-500">
-            Prices and schedules shown here are demo data. Real booking flow will open a partner
-            checkout with live inventory. Affiliate parameters will be added once available.
-          </p>
+          {/* Minimal debug info if something saknas */}
+          {!affiliateUrl && (
+            <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+              Missing data for partner link. Try searching again.
+            </div>
+          )}
         </div>
-      </div>
-    </main>
+      </main>
+    </>
   );
+}
+
+// ------- Helpers -------
+
+function partnerLabel(p: string) {
+  switch (p) {
+    case "omio":
+      return "Omio";
+    case "trainline":
+      return "Trainline";
+    case "sj":
+      return "SJ";
+    default:
+      return p || "Partner";
+  }
+}
+
+/**
+ * Enkel affiliate-mappning (placeholder-URLs)
+ * Byt "AFF_ID_*" mot dina riktiga ID:n när du får dem.
+ */
+function buildAffiliateUrl(params: {
+  partner: string;
+  from: string;
+  to: string;
+  date?: string;
+  departure?: string;
+  duration?: string;
+  transfers?: string;
+  price?: string;
+  rid?: string;
+}): string {
+  const { partner, from, to, date, departure, duration, transfers, price, rid } = params;
+  const utm = new URLSearchParams({
+    utm_source: "gobytrain",
+    utm_medium: "affiliate",
+    utm_campaign: "checkout",
+  });
+
+  // Normalisera städer för länkar
+  const f = encodeURIComponent(from || "");
+  const t = encodeURIComponent(to || "");
+  const d = encodeURIComponent(date || "");
+
+  if (partner === "omio") {
+    // Placeholder-struktur — byt domän och aff-param.
+    const q = new URLSearchParams({
+      departure: f,
+      arrival: t,
+      date: d,
+      affiliate_id: "AFF_ID_OMIO",
+    });
+    return `https://www.omio.com/search?${q.toString()}&${utm.toString()}`;
+  }
+
+  if (partner === "trainline") {
+    const q = new URLSearchParams({
+      from: f,
+      to: t,
+      date: d,
+      aff: "AFF_ID_TRAINLINE",
+    });
+    return `https://www.thetrainline.com/search?${q.toString()}&${utm.toString()}`;
+  }
+
+  if (partner === "sj") {
+    // SJ har ofta enkel sök-URL; aff-spårning sätts när vi får ID.
+    const q = new URLSearchParams({
+      from: f,
+      to: t,
+      date: d,
+    });
+    return `https://www.sj.se/en/search?${q.toString()}&${utm.toString()}`;
+  }
+
+  // Fallback: om inget partnerfält skickas -> skicka till vår generiska partnersida (byt senare)
+  const q = new URLSearchParams({
+    from: f,
+    to: t,
+    date: d,
+    rid: rid || "",
+    price: price || "",
+    duration: duration || "",
+    transfers: transfers || "",
+  });
+  return `https://partner.example.com/search?${q.toString()}&${utm.toString()}`;
 }
