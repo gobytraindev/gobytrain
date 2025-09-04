@@ -4,8 +4,19 @@ import { useRouter } from "next/router";
 
 import SearchForm from "../components/SearchForm";
 import ResultsList from "../components/ResultsList";
+import { searchRoutes } from "../utils/searchRoutes";
+import SeoHead from "../components/SeoHead";
 
-// ---- Train-typ (nu matchad till ResultsList) ----
+// ---- Formvärden (lokalt) ----
+type SearchFormValues = {
+  from: string;
+  to: string;
+  date: string;
+  maxPrice?: string;
+  maxDuration?: string;
+};
+
+// ---- Train-typ (matchar ResultsList) ----
 type Train = {
   id: string;
   from: string;
@@ -19,8 +30,6 @@ type Train = {
   operator: string;
   train: string;
 };
-import { searchRoutes } from "../utils/searchRoutes";
-import SeoHead from "../components/SeoHead";
 
 export default function Home() {
   const router = useRouter();
@@ -60,7 +69,15 @@ export default function Home() {
         { shallow: true }
       );
     }
-  }, [initialValues.from, initialValues.to, initialValues.date, initialValues.maxPrice, initialValues.maxDuration, router]);
+    // vi triggar bara när själva värdena ändras
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    initialValues.from,
+    initialValues.to,
+    initialValues.date,
+    initialValues.maxPrice,
+    initialValues.maxDuration,
+  ]);
 
   // Sök + filtrera
   function handleSearch(values: SearchFormValues) {
@@ -70,9 +87,8 @@ export default function Home() {
       // maxDuration (i timmar) → jämför i minuter
       if (values.maxDuration && values.maxDuration.trim()) {
         const m = (r.duration || "").match(/(\d+)\s*h.*?(\d+)\s*m?/i);
-        const mins = m
-          ? parseInt(m[1] || "0", 10) * 60 + parseInt(m[2] || "0", 10)
-          : 99999;
+        const mins =
+          m ? parseInt(m[1] || "0", 10) * 60 + parseInt(m[2] || "0", 10) : 99999;
         const maxMins = parseInt(values.maxDuration, 10) * 60;
         if (mins > maxMins) return false;
       }
@@ -122,7 +138,6 @@ export default function Home() {
             Fast, reliable results. Book with trusted partners.
           </p>
 
-          {/* Kort info – text, ingen komponent/layout-ändring */}
           <p className="mt-4 text-center text-gray-700 max-w-2xl mx-auto">
             GoByTrain helps you compare prices, durations and operators across
             Europe so you can book with confidence. Start by entering your
